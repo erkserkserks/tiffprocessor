@@ -4,12 +4,13 @@ package com.erks;
         import java.io.File;
         import javax.media.jai.*;
 
-// Represents one 16-bit pixel with r,g,b components
+// Represents one pixel with 16-bit r,g,b components. Each subpixel is actually represented a signed 32-bit integer,
+// since there is no unsigned 16-bit Java type.
 class Pixel16Bit {
-    public final short r;
-    public final short g;
-    public final short b;
-    public Pixel16Bit(short r, short g, short b) {
+    public final int r;
+    public final int g;
+    public final int b;
+    public Pixel16Bit(int r, int g, int b) {
         this.r = r;
         this.g = g;
         this.b = b;
@@ -90,7 +91,11 @@ class TiffProcessor {
 
             // Generate pixelMatrix
             for (int pixel = 0, row = 0, col = 0; pixel < pixels.length; pixel += pixelLength) {
-                pixelMatrix[row][col] = new Pixel16Bit(pixels[pixel], pixels[pixel + 1], pixels[pixel + 2]);
+                // Use 0xffff mask to treat short as ushort when converting to int
+                pixelMatrix[row][col] = new Pixel16Bit(
+                        pixels[pixel] & 0xffff,
+                        pixels[pixel + 1] & 0xffff,
+                        pixels[pixel + 2] & 0xffff);
                 col++;
                 if (col == width) {
                     col = 0;
@@ -110,7 +115,7 @@ class TiffProcessor {
             printInfo(pi);
 
             // pixelMatrix is the image represented as a 2D array.
-            // Each element is a Pixel16Bit, which has 16- bit r,g,b values
+            // Each element is a Pixel16Bit, which can represent 16-bit r,g,b values
             Pixel16Bit[][] pixelMatrix = getPixelMatrix(pi.copyData());
 
         }
